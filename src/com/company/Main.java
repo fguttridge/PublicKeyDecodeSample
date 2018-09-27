@@ -31,7 +31,7 @@ public class Main {
         for (int i = 0; i < decodedECKey.length; i++){
             System.out.print(decodedECKey[i]);
         }
-        System.out.println("\n" + new String(Base64.getMimeDecoder().decode(EC_SIG)));
+        System.out.println("\n" + new String(Base64.getDecoder().decode(EC_SIG)));
         //RSA KEY
         ASN1InputStream in = new ASN1InputStream(decodedRSAKey);
         ASN1Primitive obj = in.readObject();
@@ -55,7 +55,11 @@ public class Main {
 
         sig.initVerify(pk);
 
-        sig.verify(Base64.getMimeDecoder().decode(EC_SIG));
+        boolean result = sig.verify(Base64.getDecoder().decode(EC_SIG));
+
+        if (result) {
+            System.out.println("Success!");
+        }
 
 //
 
