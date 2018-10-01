@@ -11,7 +11,10 @@ import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
 import org.bouncycastle.jce.spec.ECNamedCurveSpec;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.security.*;
+import java.security.interfaces.RSAKey;
 import java.security.spec.*;
 import java.util.Base64;
 
@@ -21,15 +24,22 @@ public class Main {
 
         Security.addProvider(new BouncyCastleProvider());
 
-        String EC_KEY = "BN8BY7JysR788RGv4m5lSsJwR9D+Homco9orJo2kD6yTr1KDYantSVbG4P87+8kO2OIJvpqoz0AwNImypuI7U\\/k=";
-        String RSA_KEY = "MIIBCgKCAQEAxih38tVMUR1R712Cf\\/vGjgVNrsWdfNUifkAFcTTCclLEyEyDoVgX8oXZsyTJX7iy22cVmHrW3k20LynJAk77Hi9MP7qLU0iQmif\\/yLR+H5sqEhEaguFKr4eVR5VL6At3iIx8H4kceMWUBuhEJQp3d8vQIa6OY6wEP4FL+dao7xG6ZnZkyN78EoKw4D1FybgH2w44liVsrrMMEPXCddarL1OVHBcr8Kuv8TJNQ88Z6J2bEA9Z2sf1Pa+2mQa42XOaVPVO5r6YF0F+cCmGdVIRRnPdu90v56uHHYcaygqpV92nqX+ZJASoGpDfu2lYW8i0cvP6rHeCReUV2oi4jwfk8QIDAQAB";
-        String EC_SIG = "MEUCIQCj1zUic7gP4asoF0sfu2eKMYMk0tU+qfdxRD3BrsDpYAIgVy4pZhOR9EMftD4WmRkSMzCk1FopUIsWMcTMzfhRcOc=";
+        String EC_KEY = "BMk6X7WQJPjZlGo1F5PnwuY8lLolcCd61uUPrsiKmXORkcSNZp+mEJPvzTBwXamklYayxPCHyTfu14JlfgU8Acw=";
+        String RSA_KEY = "MIGJAoGBAJ6HqaC7nCTztdt9fKGOiMCHwVI5ZFkHFbc0X3nECxCN+H52WCZ0z41J9p95Hg28V4V\\/yXEj9aICkHxY+\\/Kkju4041M7GxwN18S84w6qzSA34HePDyw7iq9RFuH2ut+IR+Mzy7krfR8\\/wMOV1wy3X30Uqro+HHx3S8lHqnj72HgDAgMBAAE=";
+        String EC_SIG = "MEQCIHiVO6r7V8lTs4waI06ybXGuWNx60CSVpSvLSsX+70mNAiAoECukiWn4InfLdE4jjFKbMdM65opMqXST4cB1xQJaJA==";
+        String RSA_SIG = "YWI0Tj8Cw3Q8TQPaidHLlx7XB+4DoAWDA8jvcviijWuUiYXKOIWV+md4rQ3wIFAwyILvbhVUYO4wmXqfQeeoKQ==";
+
+        String ChallengeB64 = "MzljZmJiMWItYmFmNC00MGRkLTgxMzQtNGE5ZGQzZGE5OGRl";
+
+        String PayloadB64 = "eyJLZXlUeXBlIjoiUlNBIiwiUHVibGljS2V5QjY0IjoiTUlHSkFvR0JBSjZIcWFDN25DVHp0ZHQ5ZktHT2lNQ0h3Vkk1WkZrSEZiYzBYM25FQ3hDTitINTJXQ1owejQxSjlwOTVIZzI4VjRWXC95WEVqOWFJQ2tIeFkrXC9La2p1NDA0MU03R3h3TjE4Uzg0dzZxelNBMzRIZVBEeXc3aXE5UkZ1SDJ1dCtJUitNenk3a3JmUjhcL3dNT1Yxd3kzWDMwVXFybytISHgzUzhsSHFuajcySGdEQWdNQkFBRT0ifQ==";
 
         byte[] decodedECKey = Base64.getMimeDecoder().decode(EC_KEY);
         byte[] decodedRSAKey = Base64.getMimeDecoder().decode(RSA_KEY);
 
+        System.out.println(new String(decodedRSAKey));
+
         for (int i = 0; i < decodedECKey.length; i++){
-            System.out.print(decodedECKey[i]);
+            System.out.print(decodedRSAKey[i]);
         }
         System.out.println("\n" + new String(Base64.getDecoder().decode(EC_SIG)));
         //RSA KEY
@@ -39,13 +49,15 @@ public class Main {
         RSAPublicKey keyStruct = RSAPublicKey.getInstance(obj);
         RSAPublicKeySpec RSAKeySpec = new RSAPublicKeySpec(keyStruct.getModulus(), keyStruct.getPublicExponent());
 
-        KeyFactory kf = KeyFactory.getInstance("RSA");
+        KeyFactory kf = KeyFactory.getInstance("RSA", "BC");
         PublicKey generatedPublic = kf.generatePublic(RSAKeySpec);
+        java.security.interfaces.RSAPublicKey rsa = (java.security.interfaces.RSAPublicKey)generatedPublic;
+        System.out.println(rsa.getModulus().toByteArray().length);
 
         //ECDSA KEY
-        ECNamedCurveParameterSpec spec = ECNamedCurveTable.getParameterSpec("prime256v1");
+        ECNamedCurveParameterSpec spec = ECNamedCurveTable.getParameterSpec("secp256r1");
         KeyFactory ECkf = KeyFactory.getInstance("EC", new BouncyCastleProvider());
-        ECNamedCurveSpec params = new ECNamedCurveSpec("prime256v1", spec.getCurve(), spec.getG(), spec.getN());
+        ECNamedCurveSpec params = new ECNamedCurveSpec("secp256r1", spec.getCurve(), spec.getG(), spec.getN());
         ECPoint point =  ECPointUtil.decodePoint(params.getCurve(), decodedECKey);
         ECPublicKeySpec pubKeySpec = new ECPublicKeySpec(point, params);
         ECPublicKey pk = (ECPublicKey) ECkf.generatePublic(pubKeySpec);
@@ -55,11 +67,23 @@ public class Main {
 
         sig.initVerify(pk);
 
-        boolean result = sig.verify(Base64.getDecoder().decode(EC_SIG));
+        sig.update("Hello World".getBytes());
+
+        byte[] decodedSig = Base64.getDecoder().decode(EC_SIG);
+
+        ByteBuffer buffer = ByteBuffer.wrap(decodedSig);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        byte[] BEDecodedSig = buffer.array();
+
+        boolean result = sig.verify(decodedSig);
 
         if (result) {
             System.out.println("Success!");
         }
+
+//        EC Public Key [1d:d7:9f:7c:a5:e1:b6:d0:ed:9d:fa:8e:5b:4c:fa:0f:0f:d5:e7:2f]
+//        X: df0163b272b11efcf111afe26e654ac27047d0fe1e899ca3da2b268da40fac93
+//        Y: af528361a9ed4956c6e0ff3bfbc90ed8e209be9aa8cf40303489b2a6e23b53f9
 
 //
 
